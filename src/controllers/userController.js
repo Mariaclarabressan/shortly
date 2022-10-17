@@ -50,36 +50,42 @@ export async function deleteUrl(req, res){
 
     try {
         
-        await connection.query('DELETE FROM urls WHERE id= $1', [id]);
+        await connection.query('DELETE FROM urls WHERE id= $1;', [id]);
 
-        res.staus(204).send('url deletada com sucesso')
+        res.status(204).send('url deletada com sucesso');
 
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send(error);
     }
 }
 
 export async function showUser(req, res) {
     const userId = res.locals.userId;
-
+    
     try {
 
         const {rows: userUrl} = await connection.query(`
-        SELECT users.id as id, users.name as name, SUM(view) as visitCount, 
+        SELECT users.id as id, users.name as name, COALESCE(SUM("visitCount"), 0) as "visitCount", 
         json_agg(
             json_build_object(
                 'id', urls.id,
                 'shortUrl', urls."shortUrl",
                 'url', urls.url,
-                'visitCount', urls.view
+                'visitCount', urls."visitCount"
             )
-        )as "shortNewUrls"
-        FROM urls JOIN users ON urls."userId" = users.id WHERE users.id = $1 GROUP BY users.id
-        `, [userId]);
+        )as "shortenedUrls"
+        FROM users LEFT JOIN urls ON urls."userId" = users.id WHERE users.id = $1 GROUP BY users.id;
+        `, [userId]); 
+        
+        if(userUrl[0].shortenedUrls[0].id === null){
+            userUrl[0].shortenedUrls = [];             
+        }
+
 
         res.status(200).send(userUrl[0]);
         
     } catch (error) {
+        console.log(error);
         res.status(500).send(error)
     }
 }
@@ -88,15 +94,17 @@ export async function showRankingUrl(req,res) {
     try {
         
         const {rows: rankings} = await connection.query(`
-        SELECT users.id as id, users.name as name, COUNT(urls) as "visitLinks", COALESCE(SUM(view), 0) as "visitCount"
-        FROM users LEFT JOIN urls ON users.id = ulrs."userId" 
-        GROUP BU users.id
+        SELECT users.id as id, users.name as name, COUNT("visitCount") as "visitLinks", COALESCE(SUM("visitCount"), 0) as "visitCount"
+        FROM users LEFT JOIN urls ON users.id = urls."userId" 
+        GROUP BY users.id
         ORDER BY "visitCount" DESC
         LIMIT 10
         `);
         res.status(200).send(rankings)
 
     } catch (error) {
+        console.log(error);
+
         res.status(500).send(error)
     }
 }

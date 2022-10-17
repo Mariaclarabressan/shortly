@@ -7,7 +7,7 @@ dotenv.config()
 
 export async function tokenMiddleware(req, res, next) {
 
-    const token = req.headers.authorization?.replace('Bearer', '').trim();
+    const token = req.headers.authorization?.replace('Bearer ');
 
     let userId;
 
@@ -18,7 +18,7 @@ export async function tokenMiddleware(req, res, next) {
 
         connection.query('DELETE FROM sessions WHERE token = $1;', [token]);
 
-        res.status(401).send('erro aqui 1');
+        res.sendStatus(401);
 
         return
 
@@ -38,7 +38,7 @@ export async function tokenMiddleware(req, res, next) {
 
     } catch (error) {
 
-        res.status(401).send('erro aqui 2');
+        res.sendStatus(401);
     }
 
 }
@@ -86,7 +86,7 @@ export async function deleteUrlMiddleware(req, res, next) {
     const { id } = req.params;
     const userId = res.locals.userId;
 
-    const { rows: checkId } = await connection.query('SELECT * FROM urls WHERE "shortUrl" = $1', [id]);
+    const { rows: checkId } = await connection.query('SELECT * FROM urls WHERE "id" = $1', [id]);
 
     if (!checkId[0]) {
         return res.status(404).send('Id não existe');

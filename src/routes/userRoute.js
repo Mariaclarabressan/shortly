@@ -7,8 +7,8 @@ const router = Router();
 router.post("/urls/shorten", tokenMiddleware, creatUrlMiddleware, showUrl);
 router.get("/urls/:id", showUrlMiddleware, getUrlById);
 router.get("/urls/open/:shortUrl", showShortUrlMiddleware, showShortUrl);
-router.delete("/urls/:id", deleteUrlMiddleware, deleteUrl);
-router.get("/users/me", tokenMiddleware, tokenMiddleware, showUser);
+router.delete("/urls/:id",tokenMiddleware, deleteUrlMiddleware, deleteUrl);
+router.get("/users/me", tokenMiddleware, showUser);
 router.get("/ranking", showRankingUrl)
 
 export default router;
