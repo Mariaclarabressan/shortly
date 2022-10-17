@@ -14,11 +14,8 @@ export async function userMiddleware(req, res, next) {
 
     const {rows : checkEmail} =  await connection.query('SELECT * FROM users WHERE email = $1;', [body.email]);
 
-    console.log(rows)
 
-    console.log(checkEmail)
-
-    if(checkEmail){
+    if(checkEmail[0]){
         console.log(checkEmail)
         return res.sendStatus(409);
     }

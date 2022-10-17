@@ -11,7 +11,7 @@ export async function creatUser(req,res) {
 
     try {
         
-        connection.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3)', [body.name, body.email, criptPassword]);
+        connection.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3);', [body.name, body.email, criptPassword]);
         res.sendStatus(201);
 
     } catch (error) {
@@ -28,7 +28,9 @@ export async function loginUser(req,res) {
             expiresIn: 1000
         });
 
-        res.status(200).send(token)
+        connection.query('INSERT INTO sessions ("userId", token) VALUES ($1, $2);', [id, token]);
+
+        res.status(200).send({token})
         
     } catch (error) {
         res.status(500).send('não possível logar')
