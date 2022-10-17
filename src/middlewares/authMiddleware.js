@@ -1,19 +1,25 @@
-import {loginSchema, userSchema} from '../schemas/authSchema.js';
+import {loginSchema, creatSchema} from '../schemas/authSchema.js';
 import connection from '../config/db.js';
 import bcrypt from 'bcrypt';
 
 export async function userMiddleware(req, res, next) {
     const body = req.body;
+    console.log(body)
 
-    const {error} = userSchema.validate(body, {abortyEarly: false});
-
+    const {error} = creatSchema.validate(body, {abortyEarly: false});
+    console.log(error)
     if(error) {
         return res.status(422).send(error);
     }
 
-    const {rows : checkEmail} =  await connection.query('SELECT * FROM WHERE email = $1', [body.email]);
+    const {rows : checkEmail} =  await connection.query('SELECT * FROM users WHERE email = $1;', [body.email]);
 
-    if(checkEmail[0]){
+    console.log(rows)
+
+    console.log(checkEmail)
+
+    if(checkEmail){
+        console.log(checkEmail)
         return res.sendStatus(409);
     }
 
@@ -29,7 +35,7 @@ export async function loginMiddleware(req, res, next) {
         return res.status(422).send(error);
     }
 
-    const {rows: checkUser} = await connection.query('SELECT * FROM users WHERE email = $1', [body.email]);
+    const {rows: checkUser} = await connection.query('SELECT * FROM users WHERE email = $1;', [body.email]);
 
     const checkPassword = bcrypt.compareSync(body.password, checkUser[0].password);
 

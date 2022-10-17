@@ -5,13 +5,9 @@ import jwt from 'jsonwebtoken';
 export async function creatUser(req,res) {
     const body = req.body;
 
-    console.log(body)
-
     const SALT = 10
 
     const criptPassword = bcrypt.hashSync(body.password, SALT);
-
-    console.log(body.password)
 
     try {
         
@@ -24,7 +20,7 @@ export async function creatUser(req,res) {
 }
 
 export async function loginUser(req,res) {
-    const id = res.local.id;
+    const id = res.locals.id;
 
     try {
 

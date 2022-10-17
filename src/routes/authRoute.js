@@ -4,7 +4,7 @@ import { userMiddleware, loginMiddleware } from '../middlewares/authMiddleware.j
 
 const router = Router();
 
-router.post("/singup", userMiddleware, creatUser);
-router.post("/singin", loginMiddleware, loginUser);
+router.post("/signup", userMiddleware, creatUser);
+router.post("/signin",loginMiddleware, loginUser);
 
 export default router;

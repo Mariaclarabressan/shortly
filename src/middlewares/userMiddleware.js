@@ -1,4 +1,4 @@
-import userSchema from '../schemas/userSchema.js';
+import {userSchema} from '../schemas/userSchema.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import connection from '../config/db.js';
