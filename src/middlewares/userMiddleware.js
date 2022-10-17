@@ -7,7 +7,7 @@ dotenv.config()
 
 export async function tokenMiddleware(req, res, next) {
 
-    const token = req.headers.authorization?.replace('Bearer ');
+    const token = req.headers.authorization?.replace('Bearer ', '');
 
     let userId;
 
