@@ -7,11 +7,11 @@ export async function showUrl(req, res) {
 
     try {
         
-        const shortUrl = nanoid();
+        const shortUrl = nanoid(8);
 
         await connection.query('INSERT INTO urls (url, "shortUrl", "userId") VALUES ($1, $2, $3)', [body.url, shortUrl, userId]);
 
-        res.status(201).send(shortUrl);
+        res.status(201).send({shortUrl});
 
     } catch (error) {
         res.status(500).send(error)
@@ -20,12 +20,11 @@ export async function showUrl(req, res) {
 }
 
 export async function getUrlById (req, res){
-    const {id, url, shortUrl} = res.locals.url;
-
-    try{
-        const tokenUrl = {
-            id, url, shortUrl
-        }
+    const tokenUrl = res.locals.url[0];
+    try{     
+        delete tokenUrl.userId;
+        delete tokenUrl.visitCount;
+        delete tokenUrl.createdAt;
         res.status(200).send(tokenUrl);
     }catch (error) {
         res.status(500).send(error)
@@ -37,7 +36,9 @@ export async function showShortUrl(req, res) {
 
     try {
         
-        await connection.query('UPDATE urls SET view = $1 WHERE "shortUrl" = $2', [body.view +1, body,showUrl]);
+        connection.query(`UPDATE urls SET "visitCount" = "visitCount" +1 WHERE "shortUrl" = $1`, [body[0].shortUrl]);
+
+        res.redirect(body[0].url);
 
     } catch (error) {
         res.status(500).send(error);

@@ -1,35 +1,53 @@
-import {userSchema} from '../schemas/userSchema.js';
+import { userSchema } from '../schemas/userSchema.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import connection from '../config/db.js';
 
 dotenv.config()
 
-export async function tokenAuthorizationMiddleware(req, res, next) {
+export async function tokenMiddleware(req, res, next) {
 
-    const {checkToken} = req.headers;
+    const token = req.headers.authorization?.replace('Bearer', '').trim();
 
-    if(!checkToken) {
-        return res.status(401).send('token não encontrado');
+    let userId;
+
+    try {
+        userId = jwt.verify(token, process.env.TOKEN_SECRET).userId;
+
+    } catch (error) {
+
+        connection.query('DELETE FROM sessions WHERE token = $1;', [token]);
+
+        res.status(401).send('erro aqui 1');
+
+        return
+
     }
+    try {
 
-    const token = authorization?.replace('Bearer' , '');
-    await jwt.verify(token, process.env.MODE, function (error, acept){
-        if(error){
-            return res.status(401).send('erro ao decodificar o token');
+
+        const { rows: checkUser } = await connection.query('SELECT * FROM sessions WHERE id = $1;', [userId]);
+
+        if (!checkUser[0]) {
+            return res.status(404).send('erro ao mostrar usuário')
         }
 
-        res.locals.userId = acept.id;
+        res.locals.userId = userId;
 
         next();
-    })
+
+    } catch (error) {
+
+        res.status(401).send('erro aqui 2');
+    }
+
 }
 
 export async function creatUrlMiddleware(req, res, next) {
     const body = req.body;
-    const {error} = userSchema.validate(body, {abortEarly: false});
+    const { error } = userSchema.validate(body, { abortEarly: false });
 
-    if(error) {
+    if (error) {
         return res.status(422).send(error);
     }
 
@@ -37,60 +55,50 @@ export async function creatUrlMiddleware(req, res, next) {
 }
 
 export async function showUrlMiddleware(req, res, next) {
-    const {url} = req.params;
+    const { id } = req.params;
 
-    const {rows: checkUrl} = await connection.query('SELECT * FROM urls WHERE "shorturl" = $1', [url]);
+    const { rows: checkUrl } = await connection.query('SELECT * FROM urls WHERE "id" = $1', [id]);
 
-    if(!checkUrl[0]) {
+    if (!checkUrl[0]) {
         return res.status(404).send('Url não existe');
     }
 
-    res.locals.url = checkUrl[0];
+    res.locals.url = checkUrl;
 
     next();
 }
 
 export async function showShortUrlMiddleware(req, res, next) {
-    const {newUrl} = req.params;
+    const { shortUrl } = req.params;
 
-    const {rows: checkNewUrl} = await connection.query('SELECT * FROM urls WHERE "shorturl" = $1', [newUrl]);
+    const { rows: checkNewUrl } = await connection.query('SELECT * FROM urls WHERE "shortUrl" = $1', [shortUrl]);
 
-    if(!checkNewUrl[0]) {
+    if (!checkNewUrl[0]) {
         return res.status(404).send('Url não existe');
     }
 
-    res.locals.body = checkNewUrl[0];
+    res.locals.body = checkNewUrl;
 
     next();
 }
 
 export async function deleteUrlMiddleware(req, res, next) {
-    const {id} = req.params;
+    const { id } = req.params;
     const userId = res.locals.userId;
 
-    const {rows: checkId} = await connection.query('SELECT * FROM urls WHERE "shorturl" = $1', [id]);
+    const { rows: checkId } = await connection.query('SELECT * FROM urls WHERE "shortUrl" = $1', [id]);
 
-    if(!checkId[0]) {
+    if (!checkId[0]) {
         return res.status(404).send('Id não existe');
     }
 
-    const {rows: checkUrlUser} = await connection.query('SELECT * FROM urls WHERE urls.id = $1 AND urls."userId" = $2', [Number(id), userId]);
+    const { rows: checkUrlUser } = await connection.query('SELECT * FROM urls WHERE urls.id = $1 AND urls."userId" = $2', [Number(id), userId]);
 
-    if(!checkUrlUser[0]){
+    if (!checkUrlUser[0]) {
         return res.status(401).send('Url não existe')
     }
-    
-    next();
-}
-
-export async function showUserMiddleware(req, res, next) {
-    const userId = res.locals.userId;
-
-    const {rows: checkUser} = await connection.query('SELECT * FROM users WHERE id = $1', [userId]);
-
-    if(!checkUser[0]){
-        return res.status(404).send('erro ao mostrar usuário')
-    }
 
     next();
 }
+
+

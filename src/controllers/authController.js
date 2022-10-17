@@ -24,8 +24,8 @@ export async function loginUser(req,res) {
 
     try {
 
-        const token = jwt.sign({id}, process.env.MODE, {
-            expiresIn: 1000
+        const token = jwt.sign({userId : id}, process.env.TOKEN_SECRET, {
+            expiresIn: 10000000000000
         });
 
         connection.query('INSERT INTO sessions ("userId", token) VALUES ($1, $2);', [id, token]);
